@@ -12,14 +12,16 @@ This guide covers headless GUI & browser testing using tools provided by the Tra
 
 You can run test suites that require GUI (like a Web browser) on Travis CI. The environment has `xvfb` (X Virtual Framebuffer) and Firefox installed. Roughly speaking, `xvfb` imitates a monitor and lets you run a real GUI application or Web browser on a headless machine, as if a proper display were attached.
 
-Before `xvfb` can be used, it needs to be started. Typically an optimal place to do it is `before_script`, like this:
+To use xvfb, simply prefix your script with the xvfb wrapper `xvfb-run`,
+passing any arguments as you would normally. Here are two examples:
 
-    before_script:
-      - "export DISPLAY=:99.0"
-      - "sh -e /etc/init.d/xvfb start"
+    script:
+      - xvfb-run phantomjs mytests.js
+      - xvfb-run firefox http://localhost:8080/mytests.html
 
-This starts `xvfb` on display port :99.0. The display port is set directly in the `/etc/init.d` script. Second, when you run your tests, you need to tell your testing tool process (e.g. Selenium) about that display port, so it knows where to start Firefox. This will vary between testing tools and programming languages.
-
+Under the hood, xvfb-run starts an Xvfb server and runs your command on that display.
+When your command finishes, the Xvfb server will be terminated and
+xvfb-run will exit with the status of your command.
 
 ## Starting a Web Server
 
@@ -30,9 +32,6 @@ that serve HTML pages used to run test suites. Because every travis-ci.org VM pr
 Add a `before_script` to start a server, for example:
 
     before_script:
-      - "export DISPLAY=:99.0"
-      - "sh -e /etc/init.d/xvfb start"
-      - sleep 3 # give xvfb some time to start
       - rackup  # start a Web server
       - sleep 3 # give Web server some time to bind to sockets, etc
 
@@ -45,7 +44,7 @@ is not necessary (and not recommended).
 
 [Phantom.js](http://www.phantomjs.org/) is a headless WebKit with JavaScript API. It is an optimal solution for fast headless testing, site scraping, pages capture, SVG renderer, network monitoring and many other use cases.
 
-[CI environment](/docs/user/ci-environment/) provides Phantom.js preinstalled at `/usr/local/bin/phantomjs`. `xvfb` must be running before Phantom.js is started (see the section above).
+[CI environment](/docs/user/ci-environment/) provides Phantom.js preinstalled at `/usr/local/bin/phantomjs`. You'll need to use xvfb-run (see the section above).
 
 ## Examples
 
